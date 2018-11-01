@@ -44,8 +44,9 @@ def netdev_rename(old_name, new_name):
 def netdev_up(name):
     os.system("ip link set {} up".format(name))
     
-def slcan_over_tcp(host, port):
-    """ tunnel slcan over TCP. if host is not None, this will connect
+def slcan_over_tcp(netdev, host, port):
+    """ create <netdev> as new (SL)CAN device, tunnel slcan over TCP.
+    if host is not None, this will connect
     as a client to <host:port>. if it is None, this will listen on <port> """
     (master, slave) = os.openpty()
 
@@ -55,18 +56,18 @@ def slcan_over_tcp(host, port):
     #disable_echo(master)
     tty_make_slcan(slave)
     old_name = netdev_name_for_slcan(slave)
-    name = "can{}".format(port)
-    netdev_rename(old_name, name)
+    netdev_rename(old_name, netdev)
 
     if host is not None:
         nc_call = ["nc", host, "{}".format(port)]
+        print("Listening on TCP *:{}".format(port))
     else:
         nc_call = ["nc", "-l", "-p", "{}".format(port)]
+        print("Connecting to TCP {}:{}".format(host, port))
     nc = subprocess.Popen(nc_call, close_fds=True, stdin=master, stdout=master)
-    print("Listening on TCP *:{}".format(port))
 
     try:
-        netdev_up(name)
+        netdev_up(netdev)
 
         while(nc.poll() is None):
             time.sleep(1)
@@ -81,26 +82,28 @@ def slcan_over_tcp(host, port):
 
 if __name__ == "__main__":
     def show_help():
-        print("connect as a client to <host:port>:")
-        print("    -c <host> <port>")
-        print("or listen as a server on <host:port>:")
-        print("    -s <port>")
+        print("create <netdev> and connect as a client to <host:port>:")
+        print("    <netdev> -c <host> <port>")
+        print("or create <netdev> and listen as a server on <host:port>:")
+        print("    <netdev> -s <port>")
         sys.exit(1)
 
-    if len(sys.argv) < 2:
+    if len(sys.argv) < 3:
         show_help()
 
-    if sys.argv[1] == "-c":
+    netdev = sys.argv[1]
+
+    if sys.argv[2] == "-c":
+        if len(sys.argv) != 5:
+            show_help()
+        host = sys.argv[3]
+        port = sys.argv[4]
+            
+    elif sys.argv[2] == "-s":
         if len(sys.argv) != 4:
             show_help()
-        host = sys.argv[2]
-        port = sys.argv[3]
-            
-    elif sys.argv[1] == "-s":
-        if len(sys.argv) != 3:
-            show_help()
         host = None
-        port = sys.argv[2]
+        port = sys.argv[3]
     else:
         show_help()
 
@@ -109,7 +112,7 @@ if __name__ == "__main__":
     except ValueError:
         show_help()
 
-    slcan_over_tcp(host, port)
+    slcan_over_tcp(netdev, host, port)
 
     print("terminated")
     sys.exit(0)
