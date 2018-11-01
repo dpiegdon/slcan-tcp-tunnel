@@ -57,14 +57,15 @@ def slcan_over_tcp(netdev, host, port):
     else:
         nc_call = ["nc", "-l", "-p", "{}".format(port)]
         print("Connecting to TCP {}:{}".format(host, port))
-    nc = subprocess.Popen(nc_call, close_fds=True, stdin=master, stdout=master)
 
     try:
         netdev_up(netdev)
 
-        while(nc.poll() is None):
-            time.sleep(1)
-        print("nc terminated")
+        while True:
+            nc = subprocess.Popen(nc_call, close_fds=True, stdin=master, stdout=master)
+            while(nc.poll() is None):
+                time.sleep(1)
+            print("nc terminated, reopening")
     except (Exception, KeyboardInterrupt):
         pass
 
