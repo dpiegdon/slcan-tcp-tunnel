@@ -20,11 +20,6 @@ def unlockpt(fd):
     if ret < 0:
         print("ERROR: failed to unlockpt. Error {}".format(ret))
 
-def disable_echo(fd):
-    (iflag, oflag, cflag, lflag, ispeed, ospeed, cc) = termios.tcgetattr(fd)
-    lflag &= ~termios.ECHO
-    termios.tcsetattr(fd, termios.TCSANOW, [iflag, oflag, cflag, lflag, ispeed, ospeed, cc])
-
 def tty_make_slcan(fd):
     ret = fcntl.ioctl(fd, termios.TIOCSETD, struct.pack('i', N_SLCAN))
     if ret < 0:
@@ -52,8 +47,6 @@ def slcan_over_tcp(netdev, host, port):
 
     # unlockpt() is platform specific, seemingly not needed on linux 4.9
     #unlockpt(master)
-    # echo does not seem to make any trouble for now.
-    #disable_echo(master)
     tty_make_slcan(slave)
     old_name = netdev_name_for_slcan(slave)
     netdev_rename(old_name, netdev)
