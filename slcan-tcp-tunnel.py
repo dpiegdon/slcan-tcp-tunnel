@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2
 
 import os
 import sys
@@ -44,7 +44,9 @@ def netdev_rename(old_name, new_name):
 def netdev_up(name):
     os.system("ip link set {} up".format(name))
     
-def slcan_over_tcp(port):
+def slcan_over_tcp(host, port):
+    """ tunnel slcan over TCP. if host is not None, this will connect
+    as a client to <host:port>. if it is None, this will listen on <port> """
     (master, slave) = os.openpty()
 
     # unlockpt() is platform specific, seemingly not needed on linux 4.9
@@ -56,7 +58,10 @@ def slcan_over_tcp(port):
     name = "can{}".format(port)
     netdev_rename(old_name, name)
 
-    nc_call = ["nc", "-l", "-p", "{}".format(port)]
+    if host is not None:
+        nc_call = ["nc", host, "{}".format(port)]
+    else:
+        nc_call = ["nc", "-l", "-p", "{}".format(port)]
     nc = subprocess.Popen(nc_call, close_fds=True, stdin=master, stdout=master)
     print("Listening on TCP *:{}".format(port))
 
@@ -66,7 +71,7 @@ def slcan_over_tcp(port):
         while(nc.poll() is None):
             time.sleep(1)
         print("nc terminated")
-    except Exception, KeyboardInterrupt:
+    except (Exception, KeyboardInterrupt):
         pass
 
     if nc.poll() is None:
@@ -75,13 +80,36 @@ def slcan_over_tcp(port):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("please give tcp port to listen on.")
+    def show_help():
+        print("connect as a client to <host:port>:")
+        print("    -c <host> <port>")
+        print("or listen as a server on <host:port>:")
+        print("    -s <port>")
         sys.exit(1)
 
-    port = int(sys.argv[1])
+    if len(sys.argv) < 2:
+        show_help()
 
-    slcan_over_tcp(port)
+    if sys.argv[1] == "-c":
+        if len(sys.argv) != 4:
+            show_help()
+        host = sys.argv[2]
+        port = sys.argv[3]
+            
+    elif sys.argv[1] == "-s":
+        if len(sys.argv) != 3:
+            show_help()
+        host = None
+        port = sys.argv[2]
+    else:
+        show_help()
+
+    try:
+        port = int(port)
+    except ValueError:
+        show_help()
+
+    slcan_over_tcp(host, port)
 
     print("terminated")
     sys.exit(0)
