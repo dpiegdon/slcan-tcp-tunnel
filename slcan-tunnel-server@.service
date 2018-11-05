@@ -1,5 +1,5 @@
 [Unit]
-Description=CAN tunneled over network
+Description=TCP server tunneling CAN
 Requires=slcan-tunnel-server.socket
 
 [Service]
