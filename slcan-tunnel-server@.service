@@ -1,0 +1,11 @@
+[Unit]
+Description=CAN tunneled over network
+Requires=slcan-tunnel-server.socket
+
+[Service]
+Type=simple
+ExecStart=/usr/sbin/slcan-tunnel.py can4341%i
+StandardInput=socket
+StandardError=journal
+TimeoutStopSec=1
+

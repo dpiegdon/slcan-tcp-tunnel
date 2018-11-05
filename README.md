@@ -32,8 +32,9 @@ How to reduce the network overhead
 Running SLCAN over TCP roughly has factor 5 of overhead. I.e. for a 100000kbaud
 CAN bus that is saturated, we get ~500KBit of network traffic. Thats a lot.
 
-To reduce the overhead, the slcan-tcp-tunnel script has option '-x' for simple
-compression. This is OFF by default, as it is not SLCAN standard conform.
+To reduce the overhead, the slcan-tcp-tunnel script has the option '--compress'
+for a very simple compression. This is OFF by default, as it is not SLCAN
+protocol conform.
 
 The majority of the transmitted traffic will be 't' and 'T' lines of the SLCAN
 protocol. The easiest way to reduce overhead is to recompress these lines in the

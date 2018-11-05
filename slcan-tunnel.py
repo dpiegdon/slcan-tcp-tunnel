@@ -13,6 +13,10 @@ import signal
 import signal
 import errno
 
+import traceback    # XXX DEBUG
+import functools    # XXX DEBUG
+import binascii     # XXX DEBUG
+
 
 def log(message, newline="\n"):
     # python 2 variant:
@@ -33,30 +37,104 @@ def ignore_children():
 
 
 def read_command(fd_in, compress):
-    message = os.read(fd_in, 1)
-    if message != 't' and message != 'T' or not compress:
-        while True:
-            c = os.read(fd_in, 1)
-            message += c
-            if c == '\r':
-                return message
-    else:
-        log("SLCAN compression not implemented")
-        raise NotImplemented()
+    try:
+        payload = os.read(fd_in, 1)
+        if 0 == len(payload):
+            return ""
 
+        if payload[0] != 't' and payload[0] != 'T' or not compress:
+            while True:
+                c = os.read(fd_in, 1)
+                payload += c
+                if c == '\r':
+                    command = payload
+                    break
+
+        else:
+            # decompress 't' and 'T' payloads only
+            if 't' == payload[0]:
+                payload += os.read(fd_in, 3)
+                (dlc,) = struct.unpack('B', payload[3])
+                payload += os.read(fd_in, dlc+1)
+                if payload[-1] != '\r':
+                    raise IndexError
+                (id1, id2, dlc) = struct.unpack('BBB', payload[1:4])
+                command = "t%1x%02x%1x" % (id1, id2, dlc)
+                for i in range(dlc):
+                    command += "%02x" % struct.unpack('B', payload[4+i])[0]
+                command += '\r'
+
+            elif 'T' == payload[0]:
+                payload += os.read(fd_in, 5)
+                (dlc,) = struct.unpack('B', payload[5])
+                payload += os.read(fd_in, dlc+1)
+                if payload[-1] != '\r':
+                    raise IndexError
+                (id1, id2, id3, id4, dlc) = struct.unpack('BBBBB', payload[1:6])
+                command = "t%02x%02x%02x%02x%1x" % (id1, id2, id3, id4, dlc)
+                for i in range(dlc):
+                    command += "%02x" % struct.unpack('B', payload[6+i])[0]
+                command += '\r'
+
+        return command
+
+    except IndexError as e:
+        log("Malformed packet in TX path.")
+        return ""
 
 def write_command(fd_out, compress, command):
-    if command[0] != 't' and command[0] != 'T' or not compress:
-        os.write(fd_out, command)
-    else:
-        log("SLCAN compression not implemented")
-        raise NotImplemented()
+    try:
+        if command[0] != 't' and command[0] != 'T' or not compress:
+            payload = command
+
+        else:
+            # compress 't' and 'T' commands only
+            if 't' == command[0]:
+                dlc = int(command[4]);
+                if len(command) != (6+dlc*2):
+                    raise IndexError
+                if command[-1] != '\r':
+                    raise IndexError
+                fields = [ 't',
+                           int(command[1], 16),
+                           int(command[2:4], 16),
+                           dlc
+                         ]
+                fields += [ int(command[5+i*2:7+i*2], 16) for i in range(dlc) ]
+                fields.append('\r')
+                payload = struct.pack('cBBB' + 'B'*dlc + 'c', *fields)
+
+            elif 'T' == command[0]:
+                dlc = command[9];
+                if len(command) != (11+dlc*2):
+                    raise IndexError
+                if command[-1] != '\r':
+                    raise IndexError
+                fields = [ 'T',
+                           int(command[1:3], 16),
+                           int(command[3:5], 16),
+                           int(command[5:7], 16),
+                           int(command[7:9], 16),
+                           dlc
+                         ]
+                fields += [ int(command[10+i*2, 12+i*2], 16) for i in range(dlc) ]
+                fields.append('\r')
+                payload = struct.pack('cBBBBB' + 'B'*dlc + 'c', *fields)
+
+        #log("SLCAN TX => " + binascii.hexlify(payload))
+        os.write(fd_out, payload);
+    except IndexError:
+        log("Malformed packet in TX path.")
 
 
 def relay_single_stream(fd_in, decompress_in, fd_out, compress_out):
     while True:
         cmd = read_command(fd_in, decompress_in)
-        write_command(fd_out, compress_out, cmd)
+        if cmd != "":
+            write_command(fd_out, compress_out, cmd)
+        else:
+            log("SLCAN Connection lost.")
+            break
 
 
 def worker_process(fun, *args, **kwargs):
@@ -67,7 +145,13 @@ def worker_process(fun, *args, **kwargs):
         try:
             fun(*args, **kwargs)
         except (Exception, KeyboardInterrupt) as e:
-            log(e)
+            # XXX DEBUG:
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            exc_text = functools.reduce(lambda x,y: x+y, traceback.format_exception(
+                                            exc_type, exc_value, exc_traceback))
+
+            log("Exception in worker: {}".format(exc_text))
+            # <<< XXX DEBUG
         sys.exit(1)
 
 

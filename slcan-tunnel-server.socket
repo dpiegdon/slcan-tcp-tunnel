@@ -1,0 +1,10 @@
+[Unit]
+Description=CAN tunneled over network
+
+[Socket]
+ListenStream=43410
+Accept=true
+MaxConnections=9
+KeepAlive=true
+#NoDelay=true
+
