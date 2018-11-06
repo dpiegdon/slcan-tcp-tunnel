@@ -76,11 +76,18 @@ def read_command(fd_in, compress):
                     command += "%02x" % struct.unpack('B', payload[6+i])[0]
                 command += '\r'
 
+        #log("recv " + command) # XXX DEBUG
         return command
 
     except IndexError as e:
-        log("Malformed packet in TX path.")
+        # XXX DEBUG:
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        exc_text = functools.reduce(lambda x,y: x+y, traceback.format_exception(
+                                        exc_type, exc_value, exc_traceback))
+        log("Malformed packet '{}' in RX path: {}".format(
+                binascii.hexlify(payload), exc_text))
         return ""
+        # <<< XXX DEBUG
 
 def write_command(fd_out, compress, command):
     try:
@@ -124,7 +131,13 @@ def write_command(fd_out, compress, command):
         #log("SLCAN TX => " + binascii.hexlify(payload))
         os.write(fd_out, payload);
     except IndexError:
-        log("Malformed packet in TX path.")
+        # XXX DEBUG:
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        exc_text = functools.reduce(lambda x,y: x+y, traceback.format_exception(
+                                        exc_type, exc_value, exc_traceback))
+        log("Malformed packet '{}' in TX path: {}".format(
+                binascii.hexlify(command), exc_text))
+        # <<< XXX DEBUG
 
 
 def relay_single_stream(fd_in, decompress_in, fd_out, compress_out):
