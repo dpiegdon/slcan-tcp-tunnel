@@ -71,7 +71,7 @@ def read_command(fd_in, compress):
                 if payload[-1] != '\r':
                     raise IndexError
                 (id1, id2, id3, id4, dlc) = struct.unpack('BBBBB', payload[1:6])
-                command = "t%02x%02x%02x%02x%1x" % (id1, id2, id3, id4, dlc)
+                command = "T%02x%02x%02x%02x%1x" % (id1, id2, id3, id4, dlc)
                 for i in range(dlc):
                     command += "%02x" % struct.unpack('B', payload[6+i])[0]
                 command += '\r'
@@ -97,7 +97,7 @@ def write_command(fd_out, compress, command):
         else:
             # compress 't' and 'T' commands only
             if 't' == command[0]:
-                dlc = int(command[4]);
+                dlc = int(command[4], 16);
                 if len(command) != (6+dlc*2):
                     raise IndexError
                 if command[-1] != '\r':
@@ -107,12 +107,12 @@ def write_command(fd_out, compress, command):
                            int(command[2:4], 16),
                            dlc
                          ]
-                fields += [ int(command[5+i*2:7+i*2], 16) for i in range(dlc) ]
+                fields += [ int(command[5+i*2 : 7+i*2], 16) for i in range(dlc) ]
                 fields.append('\r')
                 payload = struct.pack('cBBB' + 'B'*dlc + 'c', *fields)
 
             elif 'T' == command[0]:
-                dlc = command[9];
+                dlc = int(command[9], 16);
                 if len(command) != (11+dlc*2):
                     raise IndexError
                 if command[-1] != '\r':
@@ -124,7 +124,7 @@ def write_command(fd_out, compress, command):
                            int(command[7:9], 16),
                            dlc
                          ]
-                fields += [ int(command[10+i*2, 12+i*2], 16) for i in range(dlc) ]
+                fields += [ int(command[10+i*2 : 12+i*2], 16) for i in range(dlc) ]
                 fields.append('\r')
                 payload = struct.pack('cBBBBB' + 'B'*dlc + 'c', *fields)
 
