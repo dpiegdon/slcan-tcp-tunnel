@@ -30,7 +30,6 @@ def main(args):
     if sock < 0:
         log("Failed to create socket.")
         sys.exit(-1)
-    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
     log("Connecting to {}:{}...".format(host, port))
     sock.connect((host, port))

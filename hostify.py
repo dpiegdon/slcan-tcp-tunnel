@@ -32,6 +32,7 @@ def main(args):
         log("Failed to create socket.")
         sys.exit(-1)
 
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     sock.bind( (host, port) )
     sock.listen(1)
 

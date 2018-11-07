@@ -154,7 +154,7 @@ def relay_single_stream(fd_in, decompress_in, fd_out, compress_out):
     while True:
         cmd = read_command(fd_in, decompress_in)
         if cmd != "":
-            write_commaed(fd_out, compress_out, cmd)
+            write_command(fd_out, compress_out, cmd)
         else:
             log("SLCAN RX connection lost")
             break
