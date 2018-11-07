@@ -8,6 +8,34 @@ Simple SLCAN implementation that tunnels the SLCAN protocol over TCP. Has a lot
 of overhead and miserable timing, but is super easy to deploy.
 
 
+How to use
+----------
+
+Either use the systemd service units, or start the scripts manually:
+
+Client side:
+
+		sudo ./connectify.py <host:port> ./slcan-tunnel.py [--compress] <netdev>
+
+For the server side you can use e.g. `socat`:
+
+		sudo ./hostify ./slcan-tunnel.py [--compress] <netdev>
+
+
+hostify.py and connectify.py
+----------------------------
+
+hostify.py creates a listening socket and waits for a single connection. When
+somebody connects, the defined process is started and the socket is used as
+STDIO for it.
+
+connectify.py does the same, but instead of listening, it connects to a remote
+server.
+
+You can do both using other tools, e.g. `socat` or shell redirection and `nc`.
+They are included in case none of those are available.
+
+
 How to forward an existing CAN netdev over network
 --------------------------------------------------
 

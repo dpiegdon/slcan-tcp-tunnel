@@ -10,8 +10,9 @@ def log(message, newline="\n"):
 
 def main(args):
     def show_help():
-        log("connectify.py <host:port> <command> [command params ...]")
-        log("connects to <host:port> and runs <command> using the socket as STDIO.")
+        log("hostify.py <port> <command> [command params ...]")
+        log("listens on <host:port> and runs <command> using the socket")
+        log("as STDIO exactly once for the first connecting client.")
         sys.exit(1)
 
     if len(args) < 2:
@@ -30,18 +31,21 @@ def main(args):
     if sock < 0:
         log("Failed to create socket.")
         sys.exit(-1)
-    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
-    log("Connecting to {}:{}...".format(host, port))
-    sock.connect((host, port))
+    sock.bind( (host, port) )
+    sock.listen(1)
+
+    client, addr = sock.accept()
+    log("Connection from {}...".format(addr))
 
     os.close(sys.stdin.fileno())
-    os.dup2(sock.fileno(), sys.stdin.fileno())
+    os.dup2(client.fileno(), sys.stdin.fileno())
 
     os.close(sys.stdout.fileno())
-    os.dup2(sock.fileno(), sys.stdout.fileno())
+    os.dup2(client.fileno(), sys.stdout.fileno())
 
     sock.close()
+    client.close()
 
     os.execv(command, command_args)
 
