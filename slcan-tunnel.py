@@ -20,7 +20,7 @@ import binascii     # XXX DEBUG
 
 def log(message, newline="\n"):
     # python 2 variant:
-    sys.stderr.write("{}:{}{}".format(os.getpid(), message, newline))
+    sys.stderr.write("{0}:{1}{2}".format(os.getpid(), message, newline))
 
 
 def pid_running(pid):
@@ -94,7 +94,7 @@ def read_command(fd_in, compress):
         exc_type, exc_value, exc_traceback = sys.exc_info()
         exc_text = functools.reduce(lambda x,y: x+y, traceback.format_exception(
                                         exc_type, exc_value, exc_traceback))
-        log("SLCAN Malformed packet '{}' in RX path: {}".format(
+        log("SLCAN Malformed packet '{0}' in RX path: {1}".format(
                 binascii.hexlify(payload), exc_text))
         return ""
         # <<< XXX DEBUG
@@ -145,7 +145,7 @@ def write_command(fd_out, compress, command):
         exc_type, exc_value, exc_traceback = sys.exc_info()
         exc_text = functools.reduce(lambda x,y: x+y, traceback.format_exception(
                                         exc_type, exc_value, exc_traceback))
-        log("SLCAN Malformed packet '{}' in TX path: {}".format(
+        log("SLCAN Malformed packet '{0}' in TX path: {1}".format(
                 binascii.hexlify(command), exc_text))
         # <<< XXX DEBUG
 
@@ -176,7 +176,7 @@ def worker_process(fun, *args, **kwargs):
                 exc_text = functools.reduce(lambda x,y: x+y, traceback.format_exception(
                                                 exc_type, exc_value, exc_traceback))
 
-                log("SLCAN Exception in worker: {}".format(exc_text))
+                log("SLCAN Exception in worker: {0}".format(exc_text))
                 # <<< XXX DEBUG
         sys.exit(1)
 
@@ -193,12 +193,12 @@ def slcan_relay(netdev, compress, fd_in, fd_out):
     def unlockpt(fd):
         ret = fcntl.ioctl(fd, TIOCSPTLCK, struct.pack('i', 0))
         if ret < 0:
-            log("SLCAN Failed to unlockpt: Error {}".format(ret))
+            log("SLCAN Failed to unlockpt: Error {0}".format(ret))
 
     def tty_make_slcan(fd):
         ret = fcntl.ioctl(fd, termios.TIOCSETD, struct.pack('i', N_SLCAN))
         if ret < 0:
-            log("SLCAN Failed to set SLCAN serial line discipline: Error {}".format(ret))
+            log("SLCAN Failed to set SLCAN serial line discipline: Error {0}".format(ret))
 
     def netdev_name_for_slcan(fd):
         ifname = array.array('B', [0] * (IFNAMSIZE+1))
@@ -208,11 +208,11 @@ def slcan_relay(netdev, compress, fd_in, fd_out):
         return ifname.tostring().rstrip('\0')
 
     def netdev_rename(old_name, new_name):
-        os.system("ip link set {} name {}".format(old_name, new_name))
-        log("SLCAN Netdev: '{}'".format(new_name))
+        os.system("ip link set {0} name {1}".format(old_name, new_name))
+        log("SLCAN Netdev: '{0}'".format(new_name))
 
     def netdev_up(name):
-        os.system("ip link set {} up".format(name))
+        os.system("ip link set {0} up".format(name))
 
     (master, slave) = os.openpty()
 
@@ -226,11 +226,11 @@ def slcan_relay(netdev, compress, fd_in, fd_out):
 
     relay_in  = worker_process(relay_single_stream, fd_in, compress, master, False)
     os.close(fd_in)
-    log("SLCAN Relay in: {}".format(relay_in))
+    log("SLCAN Relay in: {0}".format(relay_in))
 
     relay_out = worker_process(relay_single_stream, master, False, fd_out, compress)
     os.close(fd_out)
-    log("SLCAN Relay out: {}".format(relay_out))
+    log("SLCAN Relay out: {0}".format(relay_out))
 
     try:
         while children_alive():

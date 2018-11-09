@@ -6,7 +6,7 @@ import os
 
 def log(message, newline="\n"):
     # python 2 variant:
-    sys.stderr.write("{}:{}{}".format(os.getpid(), message, newline))
+    sys.stderr.write("{0}:{1}{2}".format(os.getpid(), message, newline))
 
 def main(args):
     def show_help():
@@ -38,7 +38,7 @@ def main(args):
     sock.listen(1)
 
     client, addr = sock.accept()
-    log("Connection from {}...".format(addr))
+    log("Connection from {0}...".format(addr))
 
     os.close(sys.stdin.fileno())
     os.dup2(client.fileno(), sys.stdin.fileno())
@@ -51,7 +51,7 @@ def main(args):
 
     os.execv(command, command_args)
 
-    log("Failed to execv: {} {}".format(command, " ".join(command_args)))
+    log("Failed to execv: " + " ".join(command_args))
     sys.exit(-1)
 
 if __name__ == "__main__":
