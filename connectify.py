@@ -31,8 +31,6 @@ def main(args):
         log("Failed to create socket.")
         sys.exit(-1)
 
-    sock.settimeout(15)
-
     log("Connecting to {}:{}...".format(host, port))
     sock.connect((host, port))
 

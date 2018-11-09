@@ -33,7 +33,6 @@ def main(args):
         sys.exit(-1)
 
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    sock.settimeout(15)
 
     sock.bind( (host, port) )
     sock.listen(1)
