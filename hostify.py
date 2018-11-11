@@ -5,7 +5,6 @@ import sys
 import os
 
 def log(message, newline="\n"):
-    # python 2 variant:
     sys.stderr.write("{0}:{1}{2}".format(os.getpid(), message, newline))
 
 def main(args):

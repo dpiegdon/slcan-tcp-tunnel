@@ -2,14 +2,12 @@
 
 import os
 import sys
-import subprocess
 import time
 import termios
 import fcntl
 import struct
 import array
 import socket
-import signal
 import signal
 import errno
 
@@ -19,7 +17,6 @@ import binascii     # XXX DEBUG
 
 
 def log(message, newline="\n"):
-    # python 2 variant:
     sys.stderr.write("{0}:{1}{2}".format(os.getpid(), message, newline))
 
 
@@ -33,7 +30,7 @@ def pid_running(pid):
 
 __children_alive = False
 
-def sig_child_handler(signum, frame):
+def sig_handler(signum, frame):
     global __children_alive
     log("SLCAN SIGCHLD")
     __children_alive = False
@@ -41,7 +38,9 @@ def sig_child_handler(signum, frame):
 def monitor_children():
     global __children_alive
     __children_alive = True
-    signal.signal(signal.SIGCHLD, sig_child_handler)
+    signal.signal(signal.SIGCHLD, sig_handler)
+    # also catch SIGTERM so we properly shutdown when asked to
+    signal.signal(signal.SIGTERM, sig_handler)
 
 def children_alive():
     return __children_alive

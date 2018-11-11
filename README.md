@@ -11,15 +11,18 @@ of overhead and miserable timing, but is super easy to deploy.
 How to use
 ----------
 
-Either use the systemd service units, or start the scripts manually:
+Either use the systemd service- and socket-units, the startup-scripts for
+sys-v-init, or start the scripts manually:
 
 Client side:
 
 		sudo ./connectify.py <host:port> ./slcan-tunnel.py [--compress] <netdev>
 
-For the server side you can use e.g. `socat`:
+Server side:
 
 		sudo ./hostify ./slcan-tunnel.py [--compress] <netdev>
+
+(You could also use other tools like `socat`.)
 
 
 hostify.py and connectify.py
