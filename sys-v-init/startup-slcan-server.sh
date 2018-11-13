@@ -69,7 +69,7 @@ case "$1" in
 		;;
 
 	*)
-		echo "unknown option."
+		echo "$0: unknown option: $@"
 		exit 1
 		;;
 
