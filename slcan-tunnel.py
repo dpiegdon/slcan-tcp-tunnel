@@ -1,4 +1,10 @@
 #!/usr/bin/python2
+#
+# slcan-tunnel.py -- tunnel SLCAN via STDIO (e.g. for relaying via TCP)
+# Part of https://github.com/dpiegdon/slcan-tcp-tunnel
+#
+# 2018 by David R. Piegdon
+# Released under GPLv3 or later, see COPYING.
 
 import os
 import sys

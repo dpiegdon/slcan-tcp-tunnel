@@ -1,4 +1,10 @@
 #!/usr/bin/python2
+#
+# hostify.py -- listen for TCP clients and connect STDIO of a process.
+# Part of https://github.com/dpiegdon/slcan-tcp-tunnel
+#
+# 2018 by David R. Piegdon
+# Released under GPLv3 or later, see COPYING.
 
 import socket
 import sys

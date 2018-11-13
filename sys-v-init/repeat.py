@@ -1,5 +1,11 @@
 #!/usr/bin/python2
-# this script is a hack to work around ancient service management...
+#
+# repeat.py -- re-run process when it terminates, terminate service when
+# indicated. (effectively a hack to work around ancient service managers)
+# Part of https://github.com/dpiegdon/slcan-tcp-tunnel
+#
+# 2018 by David R. Piegdon
+# Released under GPLv3 or later, see COPYING.
 
 import sys
 import os

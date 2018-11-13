@@ -4,7 +4,7 @@ Requires=slcan-tunnel-server.socket
 
 [Service]
 Type=simple
-ExecStart=/usr/sbin/slcan-tunnel.py can4341%i
+ExecStart=/usr/sbin/slcan-tunnel.py can616%i
 StandardInput=socket
 StandardError=journal
 TimeoutStopSec=1

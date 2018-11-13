@@ -3,7 +3,7 @@ Description=TCP client tunneling CAN
 
 [Service]
 Type=simple
-ExecStart=/usr/sbin/connectify.py %i /usr/sbin/slcan-tunnel.py can43420
+ExecStart=/usr/sbin/connectify.py %i /usr/sbin/slcan-tunnel.py can6160
 StandardError=journal
 TimeoutStopSec=1
 
