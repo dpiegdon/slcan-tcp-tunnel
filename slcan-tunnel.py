@@ -54,6 +54,8 @@ def read_command(fd_in, compress):
         if payload[0] != 't' and payload[0] != 'T' or not compress:
             while True:
                 c = os.read(fd_in, 1)
+                if '' == c:
+                    return ""
                 payload += c
                 if c == '\r':
                     command = payload
